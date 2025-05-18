@@ -1,39 +1,75 @@
-# 📣 Events
+# 📣 Event Weaver (WIP)
 
-**Events** is a lightweight event bus system for Unity, designed to facilitate decoupled communication between game components. It allows game objects and systems to publish and subscribe to events without direct references.
+## 📝 Summary
+
+Event Weaver is a Unity event bus system that simplifies event-driven architecture by automatically injecting listener registration and unregistration at build time. Navigate the sections below to learn more:
+
+- [Overview](#-overview)
+- [Weaver Integration](#-weaver-integration)
+- [Screenshots](#-screenshots)
+- [Installation](#-installation)
+- [Example Usage](#-example-usage)
 
 ---
 
 ## 🚀 Overview
 
-- The core **EventRegistry** maintains a registry of listeners.
-- Components implement `IEventListener<T>` to handle events of type `T`.
-- Custom events are defined as types implementing `IEvent`.
+- **EventRegistry**: Central registry tracking active event listeners.
+- **IEventListener<T>**: Implement this interface in your types to handle events of type `T`.
+- **IEvent**: Marker interface for custom event payloads, defined as `record` types.
+
+---
 
 ## ⚙️ Weaver Integration
 
-A build-time **Weaver** automatically injects registration and unregistration calls:
+The build-time Weaver (via Mono.Cecil) handles all listener wiring:
 
-1. **Detection**: After Unity compiles assemblies, the Weaver (using Mono.Cecil) scans for classes implementing `IEventListener<T>`.
-2. **Injection**:
-   - For **MonoBehaviour** classes, it inserts `EventRegistry.Register<T>(this)` in `OnEnable` and `EventRegistry.Unregister<T>(this)` in `OnDisable`.
-   - For **plain classes**, it adds registration in the constructor and unregistration in a finalizer.
-3. **Automation**: No manual action required. Listeners are wired into the EventRegistry at runtime automatically.
+1. **Detection**  
+   Scans compiled assemblies for types implementing `IEventListener<T>`.
+2. **Injection for MonoBehaviours**  
+   - Inserts `EventRegistry.Register<T>(this)` in `OnEnable`.  
+   - Inserts `EventRegistry.Unregister<T>(this)` in `OnDisable`.
+3. **Injection for Plain Types**  
+   - Adds registration call in the constructor.  
+   - Adds unregistration call in the finalizer.
+
+---
+
+## 🖼️ Screenshots
+
+> **Event History**  
+> _Placeholder for Event History window screenshot_
+
+> **Event Viewer**  
+> _Placeholder for Event Viewer window screenshot_
+
+---
 
 ## 📦 Installation
 
-1. WIP
+Install via Unity Package Manager using Git URL:
+
+1. Open **Window > Package Manager**.  
+2. Click **+** and select **Add package from Git URL...**  
+3. Paste:  
+   ```
+   https://github.com/landosilva/event-weaver.git?path=/Assets/Root
+   ```  
+4. Click **Add**.
 
 ---
 
 ## 🛠️ Example Usage
 
 ```csharp
+
+// Creating an Event. It is recommended to use record instead of classes or structs
 public record PlayerScored(int Score) : IEvent
 {
     public int Score { get; } = Score;
 }
 
+// Listening to an Event. You literally just need to implement the interface
 public class ScoreDisplay : MonoBehaviour, IEventListener<PlayerScored>
 {
     public void OnListenedTo(PlayerScored e)
@@ -41,8 +77,16 @@ public class ScoreDisplay : MonoBehaviour, IEventListener<PlayerScored>
         Debug.Log($"Player scored {e.Score} points!");
     }
 }
+
+// Raising events:
+new PlayerScored(10).Raise();
+// or
+PlayerScored playerScored = new (10);
+EventRegistry.Raise(playerScored);
 ```
 
-Listeners will be wired automatically when the scene runs.
+Listeners are wired automatically—no manual registration calls needed.
 
 ---
+
+*❤️ Thank you for using Event Weaver!*
