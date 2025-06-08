@@ -1,22 +1,17 @@
-# 📣 Event Weaver (WIP)
+# Event Weaver 🪡
+
+<div align="center">
+  <img src="https://github.com/user-attachments/assets/33facd18-779a-4a27-ac47-111902647f35" width="160" />
+</div>
 
 ## 📝 Summary
 
 Event Weaver is a Unity event bus system that simplifies event-driven architecture by automatically injecting listener registration and unregistration at build time. Navigate the sections below to learn more:
 
-- [Overview](#-overview)
 - [Weaver Integration](#-weaver-integration)
-- [Screenshots](#-screenshots)
+- [Tooling](#-tooling)
 - [Installation](#-installation)
 - [Example Usage](#-example-usage)
-
----
-
-## 🚀 Overview
-
-- **EventRegistry**: Central registry tracking active event listeners.
-- **IEventListener<T>**: Implement this interface in your types to handle events of type `T`.
-- **IEvent**: Marker interface for custom event payloads, defined as `record` types.
 
 ---
 
@@ -26,16 +21,16 @@ The build-time Weaver (via Mono.Cecil) handles all listener wiring:
 
 1. **Detection**  
    Scans compiled assemblies for types implementing `IEventListener<T>`.
-2. **Injection for MonoBehaviours**  
-   - Inserts `EventRegistry.Register<T>(this)` in `OnEnable`.  
-   - Inserts `EventRegistry.Unregister<T>(this)` in `OnDisable`.
-3. **Injection for Plain Types**  
-   - Adds registration call in the constructor.  
-   - Adds unregistration call in the finalizer.
+2. **Injection for MonoBehaviours**
+   - Inserts `EventRegistry.Register<T>(this)` call in `OnEnable`.
+   - Inserts `EventRegistry.Unregister<T>(this)` call in `OnDisable`.
+3. **Injection for Plain Types**
+   - Inserts `EventRegistry.Register<T>(this)` call in `Constructor`.
+   - Inserts `EventRegistry.Unregister<T>(this)` call in `Finalizer`.
 
 ---
 
-## 🖼️ Screenshots
+## 🛠 ️Tooling
 
 > **Event History**  
 > _Placeholder for Event History window screenshot_
@@ -49,9 +44,9 @@ The build-time Weaver (via Mono.Cecil) handles all listener wiring:
 
 Install via Unity Package Manager using Git URL:
 
-1. Open **Window > Package Manager**.  
-2. Click **+** and select **Add package from Git URL...**  
-3. Paste:  
+1. Open **Window > Package Manager**.
+2. Click **+** and select **Add package from Git URL...**
+3. Paste:
    ```
    https://github.com/landosilva/event-weaver.git?path=/Assets/EventWeaver
    ```  
@@ -59,18 +54,19 @@ Install via Unity Package Manager using Git URL:
 
 ---
 
-## 🛠️ Example Usage
+## ✅️ Example Usage
 
 ```csharp
 
-// Creating an Event. It is recommended to use record instead of classes or structs
-public record PlayerScored(int Score) : IEvent
+// Creating an Event
+public record OnPlayerScored(int Score) : IEvent
 {
     public int Score { get; } = Score;
 }
 
-// Listening to an Event. You literally just need to implement the interface
-public class ScoreDisplay : MonoBehaviour, IEventListener<PlayerScored>
+// Listening to an Event
+// Listeners are wired automatically — no manual registration calls needed
+public class ScoreDisplay : MonoBehaviour, IEventListener<OnPlayerScored>
 {
     public void OnListenedTo(PlayerScored e)
     {
@@ -78,14 +74,16 @@ public class ScoreDisplay : MonoBehaviour, IEventListener<PlayerScored>
     }
 }
 
-// Raising events:
-new PlayerScored(10).Raise();
-// or
-PlayerScored playerScored = new (10);
-EventRegistry.Raise(playerScored);
-```
+// Raising events.
+new OnPlayerScored(10).Raise();
 
-Listeners are wired automatically—no manual registration calls needed.
+// alternatively
+OnPlayerScored onPlayerScored = new (10);
+EventRegistry.Raise(onPlayerScored);
+// or
+EventRegistry.Raise(new OnPlayerScored(10));
+```
+💡 **Best practice**: Use `record` unless you have a specific performance/memory reason to prefer `struct`, or a polymorphic design that benefits from `class`.
 
 ---
 
