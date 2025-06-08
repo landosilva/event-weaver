@@ -53,7 +53,7 @@ Install via Unity Package Manager using Git URL:
 2. Click **+** and select **Add package from Git URL...**  
 3. Paste:  
    ```
-   https://github.com/landosilva/event-weaver.git?path=/Assets/Root
+   https://github.com/landosilva/event-weaver.git?path=/Assets/EventWeaver
    ```  
 4. Click **Add**.
 
