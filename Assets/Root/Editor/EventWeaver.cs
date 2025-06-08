@@ -38,8 +38,13 @@ namespace Lando.EventWeaver.Editor
             if (Directory.Exists(enginePath))
                 resolver.AddSearchDirectory(enginePath);
 
-            string pkgPath = Path.GetFullPath(Path.Combine(Application.dataPath, "../Packages/com.Lando.EventWeaver/Runtime"));
-            resolver.AddSearchDirectory(pkgPath);
+            string pkgPath;
+            var packageInfo = UnityEditor.PackageManager.PackageInfo.FindForAssembly(typeof(EventRegistry).Assembly);
+            if (packageInfo != null)
+            {
+                pkgPath = Path.Combine(packageInfo.resolvedPath, "Runtime");
+                resolver.AddSearchDirectory(pkgPath);
+            }
 
             var readerParams = new ReaderParameters { ReadWrite = true, AssemblyResolver = resolver };
             var module = ModuleDefinition.ReadModule(assemblyPath, readerParams);
