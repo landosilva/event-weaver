@@ -152,7 +152,15 @@ namespace Lando.EventWeaver.Editor
             {
                 if (current.BaseType.Name == baseName) 
                     return true;
-                current = current.BaseType.Resolve();
+                try
+                {
+                    current = current.BaseType.Resolve();
+                }
+                catch
+                {
+                    Debug.LogWarning($"{WarningMessage.FailedToResolveBaseType}{type.FullName}. This may cause issues with event registration.");
+                    break;
+                }
             }
             return false;
         }

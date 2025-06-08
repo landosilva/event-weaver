@@ -9,6 +9,7 @@ namespace Lando.EventWeaver.Editor
         public const string EventRegistryNotFound = PREFIX + "EventRegistry not found.";
         public const string RegisterUnregisterNotFound = PREFIX + "Register/Unregister methods not found.";
         public const string FailedToPatchAssembly = PREFIX + "Failed to patch assembly ";
+        public const string FailedToResolveBaseType = PREFIX + "Failed to resolve base type for ";
     }
 
     public static class InformationMessage
