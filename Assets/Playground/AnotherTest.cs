@@ -24,7 +24,7 @@ public class AnotherTest : MonoBehaviour,
 
     public void OnListenedTo(OnTestEvent2 e)
     {
-        
+        Debug.Log($"On Test Event: aa");
     }
 }
 

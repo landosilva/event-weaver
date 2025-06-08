@@ -2,7 +2,8 @@ using Lando.EventWeaver;
 using UnityEngine;
 
 public class NewMonoBehaviourScript : MonoBehaviour,
-    IEventListener<OnTestEvent2>
+    IEventListener<OnTestEvent5>,
+    IEventListener<OnTestEvent6>
 {
     private void Start()
     {

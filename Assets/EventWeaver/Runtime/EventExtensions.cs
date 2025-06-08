@@ -1,5 +1,3 @@
-using UnityEngine;
-
 namespace Lando.EventWeaver
 {
     public static class EventExtensions
