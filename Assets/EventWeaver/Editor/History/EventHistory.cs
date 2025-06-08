@@ -21,26 +21,12 @@ namespace Lando.EventWeaver.Editor.History
         public static bool ShowRaise = true;
         public static bool ShowUnregister = true;
 
-        private static readonly string[] IgnoreNamespaces = { "Lando.EventWeaver", "UnityEngine" };
+        private static readonly string[] IgnoreNamespaces = { AssemblyName.EventWeaver, FolderName.UnityEngine };
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
         public static void Initialize()
         {
             _instance = new EventHistory();
-        }
-        
-        private EventHistory()
-        {
-            EventRegistry.Register<EventRegistered>(listener: this);
-            EventRegistry.Register<EventRaised>(listener: this);
-            EventRegistry.Register<EventUnregistered>(listener: this);
-        }
-        
-        ~EventHistory()
-        {
-            EventRegistry.Unregister<EventRegistered>(listener: this);
-            EventRegistry.Unregister<EventRaised>(listener: this);
-            EventRegistry.Unregister<EventUnregistered>(listener: this);
         }
 
         private static void Add(string message, EventLogType type)
@@ -79,7 +65,7 @@ namespace Lando.EventWeaver.Editor.History
             if (e.Event is EventRegistered or EventUnregistered) 
                 return;
             
-            StackTrace stackTrace = new StackTrace();
+            StackTrace stackTrace = new();
             string path = "";
             for (int i = stackTrace.FrameCount - 1; i > 0; i--)
             {

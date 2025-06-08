@@ -1,12 +1,15 @@
 using Lando.EventWeaver;
+using Playground;
 using UnityEngine;
 
 public class NewMonoBehaviourScript : MonoBehaviour,
-    IEventListener<OnTestEvent5>,
-    IEventListener<OnTestEvent6>
+    IEventListener<OnTestEvent2>,
+    IEventListener<OnTestEvent3>
 {
     private void Start()
     {
+        NoParentClass noParentClass = new();
+        
         new OnTestEvent("Hey there! 1").Raise();
         new OnTestEvent2("Hey there! 2").Raise();
         new OnTestEvent3("Hey there! 3").Raise();

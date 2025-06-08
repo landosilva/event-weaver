@@ -37,6 +37,7 @@ namespace Lando.EventWeaver.Editor
         public const string EventListener = "IEventListener`1";
 
         public const string MonoBehaviour = "MonoBehaviour";
+        public const string SystemObject = "System.Object";
     }
 
     public static class AssemblyName

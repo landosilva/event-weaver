@@ -46,6 +46,7 @@ namespace Lando.EventWeaver.Editor
 
         private static void PatchAssembly(string assemblyPath)
         {
+            
             DefaultAssemblyResolver resolver = new();
             string asmDir = Path.GetFullPath(Path.Combine(Application.dataPath, FolderName.ScriptAssemblies));
             resolver.AddSearchDirectory(asmDir);
@@ -93,7 +94,7 @@ namespace Lando.EventWeaver.Editor
                 if (isMono)
                     InjectMonoBehaviour(type, listeners, registerDefinition, unregisterDefinition, module);
                 else
-                    InjectPlainClass  (type, listeners, registerDefinition, unregisterDefinition, module);
+                    InjectPlainClass(type, listeners, registerDefinition, unregisterDefinition, module);
             }
 
             module.Write();
@@ -148,17 +149,17 @@ namespace Lando.EventWeaver.Editor
         private static bool InheritsFrom(TypeDefinition type, string baseName)
         {
             TypeDefinition current = type;
-            while (current.BaseType != null)
+            while (current.BaseType != null && current.BaseType.FullName != ClassName.SystemObject)
             {
-                if (current.BaseType.Name == baseName) 
+                if (current.BaseType.Name == baseName)
                     return true;
+
                 try
                 {
                     current = current.BaseType.Resolve();
                 }
                 catch
                 {
-                    Debug.LogWarning($"{WarningMessage.FailedToResolveBaseType}{type.FullName}. This may cause issues with event registration.");
                     break;
                 }
             }
@@ -245,15 +246,19 @@ namespace Lando.EventWeaver.Editor
                 module.TypeSystem.Void);
 
             ILProcessor il = constructor.Body.GetILProcessor();
-            if (il != null)
+            il.Append(instruction: il.Create(opcode: OpCodes.Ldarg_0));
+            
+            if (type.BaseType != null && type.BaseType.FullName != ClassName.SystemObject)
             {
-                il.Append(instruction: il.Create(opcode: OpCodes.Ldarg_0));
+                TypeDefinition baseTypeDefinition = type.BaseType.Resolve();
+                MethodDefinition baseConstructor = baseTypeDefinition.Methods
+                    .FirstOrDefault(methodDefinition => methodDefinition.IsConstructor && !methodDefinition.IsStatic && methodDefinition.Parameters.Count == 0);
 
-                MethodDefinition baseConstructor = type.BaseType.Resolve().Methods.First(methodDefinition => methodDefinition.IsConstructor && !methodDefinition.IsStatic);
-                il.Append(instruction: il.Create(opcode: OpCodes.Call, method: module.ImportReference(baseConstructor)));
-                il.Append(instruction: il.Create(opcode: OpCodes.Ret));
+                if (baseConstructor != null) 
+                    il.Append(instruction: il.Create(opcode: OpCodes.Call, method: module.ImportReference(baseConstructor)));
             }
 
+            il.Append(instruction: il.Create(OpCodes.Ret));
             type.Methods.Add(constructor);
             return constructor;
         }
@@ -268,14 +273,29 @@ namespace Lando.EventWeaver.Editor
                 module.TypeSystem.Void);
 
             ILProcessor il = finalizer.Body.GetILProcessor();
-            Instruction ret = il.Create(opcode: OpCodes.Ret);
 
-            il.Append(instruction: il.Create(opcode: OpCodes.Ldarg_0));
-            MethodReference of = module.ImportReference(
-                typeof(object).GetMethod(MethodName.Finalize, bindingAttr: BindingFlags.Instance | BindingFlags.NonPublic));
-            il.Append(instruction: il.Create(opcode: OpCodes.Callvirt, of));
-            il.Append(ret);
+            if (type.BaseType != null && type.BaseType.FullName != ClassName.SystemObject)
+            {
+                try
+                {
+                    il.Append(instruction: il.Create(opcode: OpCodes.Ldarg_0));
 
+                    MethodReference baseFinalize = module.ImportReference(
+                        method: type.BaseType.Resolve().Methods.FirstOrDefault(
+                            methodDefinition => methodDefinition.Name == MethodName.Finalize && methodDefinition.Parameters.Count == 0));
+
+                    if (baseFinalize != null)
+                    {
+                        il.Append(instruction: il.Create(opcode: OpCodes.Callvirt, baseFinalize));
+                    }
+                }
+                catch
+                {
+                    // Skip base.Finalize if type.BaseType can't be resolved
+                }
+            }
+
+            il.Append(instruction: il.Create(opcode: OpCodes.Ret));
             type.Methods.Add(finalizer);
             return finalizer;
         }
