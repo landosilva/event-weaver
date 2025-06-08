@@ -1,3 +1,5 @@
+using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Mono.Cecil;
@@ -11,19 +13,38 @@ namespace Lando.EventWeaver.Editor
     [InitializeOnLoad]
     public static class EventWeaver
     {
-        public const string Prefix = "[EventWeaver]";
-        
+        private const string LOG_PREFIX = "[EventWeaver]";
+        private const string ASSEMBLY_PREFIX = "Lando.EventWeaver";
+
+        private const string EVENT_REGISTRY_NAME = nameof(EventRegistry);
+
         static EventWeaver()
         {
             CompilationPipeline.assemblyCompilationFinished += OnAssemblyCompiled;
         }
 
-        public static void OnAssemblyCompiled(string compiledAssemblyPath, CompilerMessage[] compilerMessages)
+        private static void OnAssemblyCompiled(string compiledAssemblyPath, CompilerMessage[] compilerMessages)
         {
-            string fileName = Path.GetFileName(compiledAssemblyPath);
-            if (fileName != "Assembly-CSharp.dll" && fileName != "Assembly-CSharp-Editor.dll")
-                return;
-            PatchAssembly(compiledAssemblyPath);
+            try
+            {
+                string fileName = Path.GetFileName(compiledAssemblyPath);
+
+                using (var module = ModuleDefinition.ReadModule(compiledAssemblyPath))
+                {
+                    bool referencesEventWeaver = module.AssemblyReferences
+                        .Any(assemblyNameReference => assemblyNameReference.Name.StartsWith(ASSEMBLY_PREFIX));
+
+                    if (!referencesEventWeaver)
+                        return;
+                }
+
+                Debug.Log($"{LOG_PREFIX} Patching assembly: {fileName}");
+                PatchAssembly(compiledAssemblyPath);
+            }
+            catch (Exception ex)
+            {
+                Debug.LogWarning($"{LOG_PREFIX} Failed to patch assembly '{compiledAssemblyPath}': {ex.Message}");
+            }
         }
 
         private static void PatchAssembly(string assemblyPath)
@@ -102,17 +123,22 @@ namespace Lando.EventWeaver.Editor
 
         private static TypeDefinition ResolveEventRegistryType(ModuleDefinition module)
         {
-            var found = module.Types.FirstOrDefault(t => t.Name == "EventRegistry");
-            if (found != null) return found;
+            TypeDefinition found = module.Types.FirstOrDefault(typeDefinition => typeDefinition.Name == EVENT_REGISTRY_NAME);
+            if (found != null) 
+                return found;
 
-            foreach (var ar in module.AssemblyReferences.Where(r => r.Name.StartsWith("Lando.EventWeaver")))
+            IEnumerable<AssemblyNameReference> assemblyReferences = module.AssemblyReferences.Where(HasAssemblyPrefix);
+            foreach (AssemblyNameReference assemblyNameReference in assemblyReferences)
             {
-                AssemblyDefinition asm;
-                try { asm = module.AssemblyResolver.Resolve(ar); }
+                AssemblyDefinition assemblyDefinition;
+                try { assemblyDefinition = module.AssemblyResolver.Resolve(assemblyNameReference); }
                 catch { continue; }
-                found = asm.MainModule.Types.FirstOrDefault(t => t.Name == "EventRegistry");
-                if (found != null) return found;
+
+                found = assemblyDefinition.MainModule.Types.FirstOrDefault(HasRegistryName);
+                if (found != null) 
+                    return found;
             }
+            
             return null;
         }
 
@@ -237,5 +263,9 @@ namespace Lando.EventWeaver.Editor
             type.Methods.Add(fin);
             return fin;
         }
+        
+        private static bool HasRegistryName(TypeDefinition typeDefinition) => typeDefinition.Name == EVENT_REGISTRY_NAME;
+        private static bool HasAssemblyPrefix(AssemblyNameReference assemblyNameReference) 
+            => assemblyNameReference.Name.StartsWith(ASSEMBLY_PREFIX);
     }
 }
