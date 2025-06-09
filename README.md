@@ -6,7 +6,7 @@
 
 ## 📝 Summary
 
-Event Weaver is a Unity event bus system that simplifies event-driven architecture by automatically injecting listener registration and unregistration at build time. Navigate the sections below to learn more:
+Event Weaver is a simplified event-driven architecture that automatically injects listener registration and unregistration at build time. Navigate the sections below to learn more:
 
 - [Weaver Integration](#-weaver-integration)
 - [Tooling](#-tooling)
