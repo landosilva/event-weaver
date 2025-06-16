@@ -17,6 +17,7 @@ namespace Lando.EventWeaver.Editor
         private const string PREFIX = "<b>[EventWeaver]</b> ";
 
         public const string PatchingAssembly = PREFIX + "Patching assembly: ";
+        public const string ManuallyPatching = PREFIX + "Manually patching: ";
     }
 
     public static class MethodName

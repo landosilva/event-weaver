@@ -16,6 +16,39 @@ namespace Lando.EventWeaver.Editor
     [InitializeOnLoad]
     public static class EventWeaver
     {
+        [InitializeOnLoadMethod]
+        private static void InitialWeaving()
+        {
+            if (SessionState.GetBool("Lando.EventWeaver.InitialPatchDone", false))
+                return;
+
+            SessionState.SetBool("Lando.EventWeaver.InitialPatchDone", true);
+            
+            string assembliesPath = Path.Combine(Application.dataPath, "../Library/ScriptAssemblies");
+            if (!Directory.Exists(assembliesPath))
+                return;
+
+            string[] assemblyFiles = Directory.GetFiles(assembliesPath, searchPattern: "*.dll");
+            foreach (string assemblyPath in assemblyFiles)
+            {
+                try
+                {
+                    using (ModuleDefinition module = ModuleDefinition.ReadModule(assemblyPath))
+                    {
+                        if (!module.AssemblyReferences.Any(assembly => assembly.Name.StartsWith("Lando.EventWeaver")))
+                            continue;
+                    }
+                    
+                    Debug.Log($"{InformationMessage.ManuallyPatching}{Path.GetFileName(assemblyPath)}");
+                    PatchAssembly(assemblyPath);
+                }
+                catch (Exception e)
+                {
+                    Debug.LogWarning($"{WarningMessage.FailedToPatchAssembly}{assemblyPath}': {e.Message}");
+                }
+            }
+        }
+        
         static EventWeaver()
         {
             CompilationPipeline.assemblyCompilationFinished += OnAssemblyCompiled;
