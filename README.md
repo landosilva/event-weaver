@@ -1,9 +1,5 @@
 # Event Weaver 🪡
 
-<div align="center">
-  <img src="https://github.com/user-attachments/assets/33facd18-779a-4a27-ac47-111902647f35" width="160" />
-</div>
-
 ## 📝 Summary
 
 Event Weaver is a simplified event-driven architecture that automatically injects listener registration and unregistration at build time. Navigate the sections below to learn more:
