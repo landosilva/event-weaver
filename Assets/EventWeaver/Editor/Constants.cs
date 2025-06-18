@@ -1,23 +1,17 @@
-using UnityEngine;
-
 namespace Lando.EventWeaver.Editor
 {
     public static class WarningMessage
     {
-        private const string PREFIX = "<b>[EventWeaver]</b> ";
-
-        public const string EventRegistryNotFound = PREFIX + "EventRegistry not found.";
-        public const string RegisterUnregisterNotFound = PREFIX + "Register/Unregister methods not found.";
-        public const string FailedToPatchAssembly = PREFIX + "Failed to patch assembly ";
-        public const string FailedToResolveBaseType = PREFIX + "Failed to resolve base type for ";
+        public const string EventRegistryNotFound = "EventRegistry not found.";
+        public const string RegisterUnregisterNotFound = "Register/Unregister methods not found.";
+        public const string FailedToPatchAssembly = "Failed to patch assembly ";
     }
 
     public static class InformationMessage
     {
-        private const string PREFIX = "<b>[EventWeaver]</b> ";
-
-        public const string PatchingAssembly = PREFIX + "Patching assembly: ";
-        public const string ManuallyPatching = PREFIX + "Manually patching: ";
+        public const string PatchingAssembly = "Patching assembly: ";
+        public const string ManuallyPatching = "Manually patching: ";
+        public const string SettingsCreatedAt = "Settings created at: ";
     }
 
     public static class MethodName
@@ -52,5 +46,29 @@ namespace Lando.EventWeaver.Editor
         public const string Managed = "Managed";
         public const string UnityEngine = "UnityEngine";
         public const string ScriptAssemblies = "../Library/ScriptAssemblies";
+        public const string Resources = "../Resources";
+    }
+
+    public static class SearchPattern
+    {
+        public const string DLL = "*.dll";
+    }
+    
+    public static class Variable
+    {
+        public const string InitialPatchDone = "Lando.EventWeaver.InitialPatchDone";
+    }
+
+    public static class WindowName
+    {
+        public const string EventViewer = "Event Viewer";
+    }
+
+    public static class IconName
+    {
+        public const string Prefab = "d_Prefab Icon";
+        public const string Unity = "d_UnityLogo";
+        public const string Zoom = "d_ViewToolZoom";
+        public const string Info = "d_console.infoicon";
     }
 }

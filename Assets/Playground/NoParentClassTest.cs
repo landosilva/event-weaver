@@ -3,11 +3,11 @@ using UnityEngine;
 
 namespace Playground
 {
-    public class NoParentClass : IEventListener<OnTestEvent>
+    public class NoParentClassTest : IEventListener<OnTestEvent>
     {
         public void OnListenedTo(OnTestEvent e)
         {
-            Debug.Log("Eita : " + e.Message);
+            Debug.Log("OnListenedTo OnTestEvent: " + e.Message);
         }
     }
 }

@@ -8,7 +8,7 @@ public class NewMonoBehaviourScript : MonoBehaviour,
 {
     private void Start()
     {
-        NoParentClass noParentClass = new();
+        NoParentClassTest noParentClassTest = new();
         
         new OnTestEvent("Hey there! 1").Raise();
         new OnTestEvent2("Hey there! 2").Raise();

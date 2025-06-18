@@ -9,9 +9,9 @@ using UnityEngine;
 namespace Lando.EventWeaver.Editor.History
 {
     public class EventHistory :
-        IEventListener<EventRegistered>,
-        IEventListener<EventRaised>,
-        IEventListener<EventUnregistered>
+        IEventListener<OnEventRegistered>,
+        IEventListener<OnEventRaised>,
+        IEventListener<OnEventUnregistered>
     {
         private static EventHistory _instance;
         
@@ -52,7 +52,7 @@ namespace Lando.EventWeaver.Editor.History
 
         public static List<EventLog> GetLogs() => new(collection: Logs);
 
-        public void OnListenedTo(EventRegistered e)
+        public void OnListenedTo(OnEventRegistered e)
         {
             if (e.Listener == this) 
                 return;
@@ -60,9 +60,9 @@ namespace Lando.EventWeaver.Editor.History
             Add(message, EventLogType.Register);
         }
 
-        public void OnListenedTo(EventRaised e)
+        public void OnListenedTo(OnEventRaised e)
         {
-            if (e.Event is EventRegistered or EventUnregistered) 
+            if (e.Event is OnEventRegistered or OnEventUnregistered) 
                 return;
             
             StackTrace stackTrace = new();
@@ -85,7 +85,7 @@ namespace Lando.EventWeaver.Editor.History
             Add(message, EventLogType.Raise);
         }
 
-        public void OnListenedTo(EventUnregistered e)
+        public void OnListenedTo(OnEventUnregistered e)
         {
             if (e.Listener == this) 
                 return;

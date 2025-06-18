@@ -19,32 +19,32 @@ namespace Lando.EventWeaver.Editor
         [InitializeOnLoadMethod]
         private static void InitialWeaving()
         {
-            if (SessionState.GetBool("Lando.EventWeaver.InitialPatchDone", false))
+            if (SessionState.GetBool(Variable.InitialPatchDone, false))
                 return;
 
-            SessionState.SetBool("Lando.EventWeaver.InitialPatchDone", true);
+            SessionState.SetBool(Variable.InitialPatchDone, true);
             
-            string assembliesPath = Path.Combine(Application.dataPath, "../Library/ScriptAssemblies");
+            string assembliesPath = Path.Combine(Application.dataPath, FolderName.ScriptAssemblies);
             if (!Directory.Exists(assembliesPath))
                 return;
 
-            string[] assemblyFiles = Directory.GetFiles(assembliesPath, searchPattern: "*.dll");
+            string[] assemblyFiles = Directory.GetFiles(assembliesPath, SearchPattern.DLL);
             foreach (string assemblyPath in assemblyFiles)
             {
                 try
                 {
                     using (ModuleDefinition module = ModuleDefinition.ReadModule(assemblyPath))
                     {
-                        if (!module.AssemblyReferences.Any(assembly => assembly.Name.StartsWith("Lando.EventWeaver")))
+                        if (!module.AssemblyReferences.Any(HasAssemblyPrefix))
                             continue;
                     }
                     
-                    Debug.Log($"{InformationMessage.ManuallyPatching}{Path.GetFileName(assemblyPath)}");
+                    EventWeaverDebug.Log($"{InformationMessage.ManuallyPatching}{Path.GetFileName(assemblyPath)}");
                     PatchAssembly(assemblyPath);
                 }
                 catch (Exception e)
                 {
-                    Debug.LogWarning($"{WarningMessage.FailedToPatchAssembly}{assemblyPath}': {e.Message}");
+                    EventWeaverDebug.LogWarning($"{WarningMessage.FailedToPatchAssembly}{assemblyPath}': {e.Message}");
                 }
             }
         }
@@ -68,12 +68,12 @@ namespace Lando.EventWeaver.Editor
                         return;
                 }
 
-                Debug.Log($"{InformationMessage.PatchingAssembly}{fileName}");
+                EventWeaverDebug.Log($"{InformationMessage.PatchingAssembly}{fileName}");
                 PatchAssembly(compiledAssemblyPath);
             }
             catch (Exception ex)
             {
-                Debug.LogWarning($"{WarningMessage.FailedToPatchAssembly}{compiledAssemblyPath}': {ex.Message}");
+                EventWeaverDebug.LogWarning($"{WarningMessage.FailedToPatchAssembly}{compiledAssemblyPath}': {ex.Message}");
             }
         }
 
@@ -97,13 +97,18 @@ namespace Lando.EventWeaver.Editor
                 resolver.AddSearchDirectory(packagePath);
             }
 
-            ReaderParameters readerParams = new() { ReadWrite = true, AssemblyResolver = resolver };
-            ModuleDefinition module = ModuleDefinition.ReadModule(assemblyPath, readerParams);
+            ReaderParameters readerParameters = new() 
+            { 
+                ReadWrite = true,
+                ReadSymbols = true,
+                AssemblyResolver = resolver 
+            };
+            ModuleDefinition module = ModuleDefinition.ReadModule(assemblyPath, readerParameters);
 
             TypeDefinition eventRegistryType = ResolveEventRegistryType(module);
             if (eventRegistryType == null)
             {
-                Debug.LogWarning(WarningMessage.EventRegistryNotFound);
+                EventWeaverDebug.LogWarning(WarningMessage.EventRegistryNotFound);
                 module.Dispose();
                 return;
             }
@@ -112,7 +117,7 @@ namespace Lando.EventWeaver.Editor
             MethodDefinition unregisterDefinition = eventRegistryType.Methods.FirstOrDefault(methodDefinition => methodDefinition.Name == MethodName.Unregister && methodDefinition.HasGenericParameters && methodDefinition.Parameters.Count == 1);
             if (registerDefinition == null || unregisterDefinition == null)
             {
-                Debug.LogWarning(WarningMessage.RegisterUnregisterNotFound);
+                EventWeaverDebug.LogWarning(WarningMessage.RegisterUnregisterNotFound);
                 module.Dispose();
                 return;
             }
@@ -130,7 +135,11 @@ namespace Lando.EventWeaver.Editor
                     InjectPlainClass(type, listeners, registerDefinition, unregisterDefinition, module);
             }
 
-            module.Write();
+            WriterParameters writerParameters = new()
+            {
+                WriteSymbols = true,
+            };
+            module.Write(writerParameters);
             module.Dispose();
         }
     

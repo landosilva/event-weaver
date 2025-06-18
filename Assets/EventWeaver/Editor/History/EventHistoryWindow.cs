@@ -7,7 +7,7 @@ using UnityEngine;
 namespace Lando.EventWeaver.Editor.History
 {
     public class EventHistoryWindow : EditorWindow,
-        IEventListener<EventRaised>
+        IEventListener<OnEventRaised>
     {
         private Vector2 _scrollPosition;
         private GUIStyle _evenRowStyle;
@@ -20,22 +20,18 @@ namespace Lando.EventWeaver.Editor.History
         private static Texture2D _evenRowTexture;
         private static Texture2D _oddRowTexture;
 
-        [MenuItem("Tools/Lando/Event Weaver/Event History")]
+        [MenuItem("Tools/Event Weaver/Event History")]
         public static void ShowWindow()
         {
             EventHistoryWindow window = GetWindow<EventHistoryWindow>();
             Texture windowIcon = EditorGUIUtility.IconContent(name: "console.infoicon.sml").image;
             window.titleContent = new GUIContent(text: "Event History", windowIcon);
-            
-            EventRegistry.Register(window);
         }
 
         private void OnEnable()
         {
             InitializeTextures();
         }
-        
-        private void OnDisable() => EventRegistry.Unregister(listener: this);
 
         private void OnGUI()
         {
@@ -179,6 +175,6 @@ namespace Lando.EventWeaver.Editor.History
             return result;
         }
 
-        public void OnListenedTo(EventRaised e) => Repaint();
+        public void OnListenedTo(OnEventRaised e) => Repaint();
     }
 }

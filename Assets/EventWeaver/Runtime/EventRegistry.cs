@@ -19,7 +19,7 @@ namespace Lando.EventWeaver
                 return;
             
             Listeners[eventType].Add(listener);
-            new EventRegistered(listener, eventType).Raise();
+            new OnEventRegistered(listener, eventType).Raise();
         }
 
         public static void Unregister<T>(IEventListener<T> listener) where T : IEvent
@@ -30,7 +30,7 @@ namespace Lando.EventWeaver
                 return;
             
             listeners.Remove(listener);
-            new EventUnregistered(listener, eventType).Raise();
+            new OnEventUnregistered(listener, eventType).Raise();
 
             if (Listeners[eventType].Count == 0) 
                 Listeners.Remove(eventType);
@@ -49,8 +49,8 @@ namespace Lando.EventWeaver
                 ((IEventListener<T>)listener).OnListenedTo(e);
             }
 
-            if (e is not EventRaised) 
-                new EventRaised(e).Raise();
+            if (e is not OnEventRaised) 
+                new OnEventRaised(e).Raise();
         }
     }
 }

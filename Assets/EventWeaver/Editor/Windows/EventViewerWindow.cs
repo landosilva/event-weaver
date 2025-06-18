@@ -9,40 +9,40 @@ namespace Lando.EventWeaver.Editor.Windows
 {
     public class EventViewerWindow : EditorWindow
     {
-        private Vector2 scrollPosition;
-        private Dictionary<string, bool> foldoutStates = new Dictionary<string, bool>();
+        private Vector2 _scrollPosition;
+        private readonly Dictionary<string, bool> _foldoutStates = new();
 
-        [MenuItem("Tools/Lando/Event Weaver/Event Viewer")]
+        [MenuItem("Tools/Event Weaver/Event Viewer")]
         public static void ShowWindow()
         {
-            EventViewerWindow window = GetWindow<EventViewerWindow>(false);
+            EventViewerWindow window = GetWindow<EventViewerWindow>(utility: false);
             window.minSize = new Vector2(300, 200);
 
-            Texture windowIcon = EditorGUIUtility.IconContent("d_ViewToolZoom").image;
-            window.titleContent = new GUIContent(text: "Event Viewer", windowIcon);
+            Texture windowIcon = EditorGUIUtility.IconContent(IconName.Zoom).image;
+            window.titleContent = new GUIContent(text: WindowName.EventViewer, windowIcon);
         }
 
         private void OnGUI()
         {
             if (!EditorApplication.isPlaying)
             {
-                EditorGUILayout.HelpBox("Event Viewer only works during Play mode.", MessageType.Warning);
+                EditorGUILayout.HelpBox(message: "Event Viewer only works during Play mode.", MessageType.Warning);
                 return;
             }
 
-            scrollPosition = EditorGUILayout.BeginScrollView(scrollPosition);
+            _scrollPosition = EditorGUILayout.BeginScrollView(_scrollPosition);
 
-            Type registryType = typeof(Lando.EventWeaver.EventRegistry);
-            FieldInfo listenersField = registryType.GetField("Listeners", BindingFlags.NonPublic | BindingFlags.Static);
-            IDictionary<Type, List<object>> listenersDictionary = listenersField?.GetValue(null) as IDictionary<Type, List<object>>;
+            Type registryType = typeof(EventRegistry);
+            const BindingFlags bindingAttr = BindingFlags.NonPublic | BindingFlags.Static;
+            FieldInfo listenersField = registryType.GetField(name: "Listeners", bindingAttr);
 
-            if (listenersDictionary == null)
+            if (listenersField?.GetValue(null) is not IDictionary<Type, List<object>> listenersDictionary)
             {
-                EditorGUILayout.HelpBox("Could not find EventRegistry.Listeners.", MessageType.Error);
+                EditorGUILayout.HelpBox(message: "Could not find EventRegistry.Listeners.", MessageType.Error);
             }
             else
             {
-                Dictionary<string, List<(Type eventType, object listener)>> grouping = new Dictionary<string, List<(Type, object)>>();
+                Dictionary<string, List<(Type eventType, object listener)>> grouping = new();
                 foreach ((Type eventType, List<object> list) in listenersDictionary)
                 {
                     foreach (object listener in list)
@@ -56,29 +56,33 @@ namespace Lando.EventWeaver.Editor.Windows
                                     ? nameof(ScriptableObject)
                                     : type.BaseType?.Name ?? "<No Base>";
 
-                        if (!grouping.ContainsKey(baseName)) grouping[baseName] = new List<(Type, object)>();
+                        if (!grouping.ContainsKey(baseName)) 
+                            grouping[baseName] = new List<(Type, object)>();
                         grouping[baseName].Add((eventType, listener));
                     }
                 }
 
                 foreach ((string baseName, List<(Type eventType, object listener)> items) in grouping.OrderBy(p => p.Key))
                 {
-                    bool baseExpanded = foldoutStates.TryGetValue(baseName, out bool baseState) && baseState;
-                    DrawFoldout(baseIndent:0, ref baseExpanded, baseName, "d_Prefab Icon", new Color(0.2f, 0.2f, 0.2f));
-                    foldoutStates[baseName] = baseExpanded;
-                    if (!baseExpanded) continue;
+                    Color color20 = new(r: 0.2f, g: 0.2f, b: 0.2f);
+                    Color color15 = new(r: 0.15f, g: 0.15f, b: 0.15f);
+                    bool baseExpanded = _foldoutStates.TryGetValue(baseName, out bool baseState) && baseState;
+                    DrawFoldout(baseIndent: 0, ref baseExpanded, label: baseName, IconName.Prefab, color20);
+                    _foldoutStates[baseName] = baseExpanded;
+                    if (!baseExpanded) 
+                        continue;
 
                     foreach (IGrouping<Type, (Type eventType, object listener)> eventGroup in items.GroupBy(x => x.eventType))
                     {
                         string eventName = eventGroup.Key.Name;
-                        bool eventExpanded = foldoutStates.TryGetValue(eventName, out bool eventState) && eventState;
-                        DrawFoldout(baseIndent:1, ref eventExpanded, eventName, "d_UnityLogo", new Color(0.15f, 0.15f, 0.15f));
-                        foldoutStates[eventName] = eventExpanded;
+                        bool eventExpanded = _foldoutStates.TryGetValue(eventName, out bool eventState) && eventState;
+                        DrawFoldout(baseIndent:1, ref eventExpanded, label: eventName, IconName.Unity, color15);
+                        _foldoutStates[eventName] = eventExpanded;
                         if (!eventExpanded) continue;
 
                         foreach ((Type _, object listener) in eventGroup)
                         {
-                            DrawListenerRow(listener, indentLevel:2);
+                            DrawListenerRow(listener, indentLevel: 2);
                         }
                     }
                 }
@@ -90,7 +94,7 @@ namespace Lando.EventWeaver.Editor.Windows
         private void DrawFoldout(int baseIndent, ref bool expanded, string label, string iconName, Color backgroundColor)
         {
             float height = EditorGUIUtility.singleLineHeight + 4;
-            Rect controlRect = EditorGUILayout.GetControlRect(false, height);
+            Rect controlRect = EditorGUILayout.GetControlRect(hasLabel: false, height);
             controlRect.xMin += baseIndent * 15;
 
             Color originalBg = GUI.backgroundColor;
@@ -101,31 +105,32 @@ namespace Lando.EventWeaver.Editor.Windows
             Rect foldRect = controlRect;
             foldRect.xMin += 4;
             Texture icon = EditorGUIUtility.IconContent(iconName).image;
-            GUIContent content = new GUIContent(label, icon);
-            expanded = EditorGUI.Foldout(foldRect, expanded, content, true);
+            GUIContent content = new(label, icon);
+            expanded = EditorGUI.Foldout(foldRect, foldout: expanded, content, toggleOnLabelClick: true);
         }
 
         private void DrawListenerRow(object listener, int indentLevel)
         {
+            Color color1 = new(r: 0.1f, g: 0.1f, b: 0.1f);
             float height = EditorGUIUtility.singleLineHeight + 2;
-            Rect controlRect = EditorGUILayout.GetControlRect(false, height);
+            Rect controlRect = EditorGUILayout.GetControlRect(hasLabel: false, height);
             controlRect.xMin += indentLevel * 16;
 
             Component component = listener as Component;
-            UnityEngine.Object unityObject = component != null ? (UnityEngine.Object)component : listener as UnityEngine.Object;
+            UnityEngine.Object unityObject = component != null ? component : listener as UnityEngine.Object;
             string label = component != null
                 ? component.gameObject.name + " (" + component.GetType().Name + ")"
                 : listener.GetType().Name;
 
             Texture icon = unityObject != null
                 ? EditorGUIUtility.ObjectContent(unityObject, unityObject.GetType()).image
-                : EditorGUIUtility.IconContent("d_console.infoicon").image;
-            GUIContent content = new GUIContent(label, icon);
+                : EditorGUIUtility.IconContent(IconName.Info).image;
+            GUIContent content = new(label, icon);
 
-            Color originalBg = GUI.backgroundColor;
-            GUI.backgroundColor = new Color(0.1f, 0.1f, 0.1f);
+            Color backgroundColor = GUI.backgroundColor;
+            GUI.backgroundColor = color1;
             GUI.Box(controlRect, GUIContent.none);
-            GUI.backgroundColor = originalBg;
+            GUI.backgroundColor = backgroundColor;
 
             if (GUI.Button(controlRect, content, EditorStyles.label) && unityObject != null)
             {
