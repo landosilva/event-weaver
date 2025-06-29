@@ -1,13 +1,9 @@
-using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Reflection;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
-using UnityEditor;
 using UnityEditor.Compilation;
-using UnityEngine;
 using MethodAttributes = Mono.Cecil.MethodAttributes;
 using PackageInfo = UnityEditor.PackageManager.PackageInfo;
 

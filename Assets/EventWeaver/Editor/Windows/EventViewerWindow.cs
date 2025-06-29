@@ -1,9 +1,7 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using UnityEditor;
-using UnityEngine;
+using Object = UnityEngine.Object;
 
 namespace Lando.EventWeaver.Editor.Windows
 {
@@ -117,7 +115,7 @@ namespace Lando.EventWeaver.Editor.Windows
             controlRect.xMin += indentLevel * 16;
 
             Component component = listener as Component;
-            UnityEngine.Object unityObject = component != null ? component : listener as UnityEngine.Object;
+            Object unityObject = component != null ? component : listener as Object;
             string label = component != null
                 ? component.gameObject.name + " (" + component.GetType().Name + ")"
                 : listener.GetType().Name;

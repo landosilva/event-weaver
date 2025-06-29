@@ -1,5 +1,3 @@
-using UnityEngine;
-
 namespace Lando.EventWeaver.Editor
 {
     public static class EventWeaverDebug

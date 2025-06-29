@@ -1,7 +1,5 @@
 using System.IO;
 using System.Linq;
-using UnityEditor;
-using UnityEngine;
 
 namespace Lando.EventWeaver.Editor
 {

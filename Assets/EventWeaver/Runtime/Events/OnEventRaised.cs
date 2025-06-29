@@ -1,7 +1,2 @@
-namespace Lando.EventWeaver.Events
-{
-    public record OnEventRaised(IEvent Event) : IEvent
-    {
-        public IEvent Event { get; } = Event;
-    }
-}
+namespace Lando.EventWeaver.Events;
+public readonly record struct OnEventRaised(IEvent Event) : IEvent;
