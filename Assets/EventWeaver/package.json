@@ -1,5 +1,5 @@
 {
-    "name": "com.lando.event-weaver",
+    "name": "landosilva.event-weaver",
     "displayName": "Event Weaver",
     "version": "0.0.3",
     "unity": "2019.2",
@@ -9,12 +9,14 @@
     },
     "keywords": [
         "lando",
+        "silva",
+        "lando silva",
         "unity",
         "events",
         "event",
         "weaver",
-        "event-weaver",
-        "event-weaver-unity"
+        "event weaver",
+        "event weaver unity"
     ],
     "author": {
         "name": "Lando Silva",
